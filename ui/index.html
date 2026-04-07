@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmAi Master Engine - V1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --gold: #DAA520; --green: #004d00; --gold-l: #FFDF00;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: linear-gradient(135deg, var(--gold-l), #50C878);
+            background-attachment: fixed; color: var(--green);
+            font-family: 'Poppins', sans-serif; min-height: 100vh; overflow-x: hidden;
+        }
+
+        /* --- DHAN VARSHA --- */
+        .money-rain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        .coin { position: absolute; width: 18px; height: 18px; background: radial-gradient(circle, #FFD700, var(--gold)); border-radius: 50%; border: 1px solid #B8860B; animation: fall linear infinite; }
+        @keyframes fall { to { transform: translateY(105vh) rotate(360deg); } }
+
+        /* --- LIVE NEWS TICKER (New) --- */
+        .news-ticker {
+            background: #000; color: #ffd700; padding: 6px 0; overflow: hidden;
+            white-space: nowrap; border-bottom: 2px solid var(--gold); position: relative; z-index: 100;
+        }
+        .ticker-content {
+            display: inline-block; animation: ticker 30s linear infinite; font-size: 0.85rem; font-weight: 600;
+        }
+        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        /* --- COMPACT HEADER --- */
+        .divine-header { text-align: center; padding: 10px; position: relative; z-index: 10; border-bottom: 2px solid var(--gold); background: rgba(255,255,255,0.1); }
+        .corner-img { position: absolute; top: 0; width: 45px; animation: swing 4s infinite alternate; transform-origin: top center; }
+        @keyframes swing { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+        
+        .market-bull { position: absolute; left: 10px; bottom: 5px; height: 55px; }
+        .market-bear { position: absolute; right: 10px; bottom: 5px; height: 55px; }
+
+        .ganesh-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 5px; }
+        .shubh-labh { font-family: 'Tiro Devanagari Hindi', serif; font-size: 1.8rem; font-weight: 800; color: #b30000; }
+        .ganesh-main { height: 75px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); }
+
+        .divine-grid { display: flex; justify-content: center; align-items: center; gap: 15px; margin: 5px 0; }
+        .grid-img { height: 50px; }
+        .om-small { width: 30px; filter: drop-shadow(0 0 5px gold); }
+
+        .mantra-box { font-family: 'Tiro Devanagari Hindi', serif; font-size: 1rem; font-weight: 700; line-height: 1.4; color: #b30000; margin: 5px 0; }
+        .mor-pankh { width: 30px; vertical-align: middle; }
+
+        .kalash-yantra-row { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 5px; }
+        .bottom-img { height: 40px; }
+
+        /* --- STATUS & TICKERS --- */
+        .status-bar { display: flex; justify-content: space-around; background: rgba(255,255,255,0.8); border: 1px solid var(--gold); border-radius: 10px; padding: 5px; margin: 10px auto; max-width: 95%; font-weight: 800; font-size: 0.8rem; }
+        .ticker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; max-width: 95%; margin: 5px auto; }
+        .ticker-card { background: #fff; border: 1px solid var(--gold); border-radius: 8px; padding: 8px; text-align: center; font-size: 0.8rem; font-weight: 800; }
+
+        /* --- SMART FEMALE ROBOT SECTION --- */
+        .ai-analysis-box {
+            background: rgba(255, 255, 255, 0.95); border: 2px solid var(--gold); border-radius: 15px;
+            max-width: 95%; margin: 10px auto; padding: 10px; display: flex; align-items: center; justify-content: space-between;
+        }
+        .female-robot-img { height: 90px; border-radius: 10px; animation: glow 2s infinite alternate; }
+        @keyframes glow { from { filter: drop-shadow(0 0 5px #00ff00); } to { filter: drop-shadow(0 0 15px #00ff00); } }
+        .analysis-text { flex-grow: 1; padding-left: 15px; font-size: 0.85rem; font-weight: 600; }
+        .scanning-line { height: 2px; background: #00ff00; width: 100%; position: relative; animation: scan 2s linear infinite; }
+        @keyframes scan { 0% { top: 0; } 100% { top: 15px; } }
+
+        /* --- COMPACT WINDOWS (Updated to 3 Columns) --- */
+        .main-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; max-width: 95%; margin: 10px auto; }
+        .compact-card { background: white; border: 2px solid var(--gold); border-radius: 15px; padding: 10px; height: 135px; overflow: hidden; }
+        .card-header { border-bottom: 1px solid var(--gold); margin-bottom: 5px; font-size: 0.85rem; font-weight: 800; text-align: center; }
+
+        /* --- SENTIMENT GAUGE (New) --- */
+        .gauge-container { position: relative; width: 120px; height: 60px; margin: 5px auto; overflow: hidden; border-radius: 60px 60px 0 0; background: #eee; }
+        .gauge-color { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to right, #ff4d4d, #ffd700, #2ecc71); }
+        .needle { position: absolute; bottom: 0; left: 50%; width: 3px; height: 50px; background: #333; transform-origin: bottom center; transform: rotate(0deg); transition: transform 1s; }
+        .sentiment-label { font-size: 0.75rem; font-weight: 800; text-align: center; margin-top: 5px; }
+
+        /* --- TRADE STATION --- */
+        .trade-section { background: white; border: 2px solid var(--gold); border-radius: 15px; max-width: 95%; margin: 15px auto; padding: 10px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 6px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.75rem; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+    <div class="news-ticker">
+        <div class="ticker-content">
+            🚀 NIFTY Scanning All-Time High... | 📊 OmAi Engine: Brahmastra V1 Active | 💰 आज का जैकपॉट सिग्नल: VIP ग्रुप्स को मॉनिटर किया जा रहा है... | ॥ जय श्री सांवरीया सेठ ॥ लक्ष्मी कुबेर की कृपा ॥
+        </div>
+    </div>
+
+    <div class="money-rain" id="rain"></div>
+
+    <header class="divine-header">
+        <img src="../static/images/bell.png" class="corner-img" style="left:10px;">
+        <img src="../static/images/hanging_deepak.png" class="corner-img" style="right:10px;">
+        <img src="../static/images/market_bull.png" class="market-bull">
+        <img src="../static/images/market_bear.png" class="market-bear">
+
+        <div class="ganesh-row">
+            <span class="shubh-labh">शुभ <img src="../static/images/swastik.png" style="width:25px;"></span>
+            <img src="../static/images/ganesh.png" class="ganesh-main">
+            <span class="shubh-labh"><img src="../static/images/swastik.png" style="width:25px;"> लाभ</span>
+        </div>
+
+        <div class="divine-grid">
+            <img src="../static/images/shyam_baba.png" class="grid-img">
+            <img src="../static/images/om.png" class="om-small">
+            <img src="../static/images/laxmi_kuber.png" class="grid-img">
+        </div>
+
+        <div class="mantra-box">
+            <img src="../static/images/mor_pankh.png" class="mor-pankh">
+            ॥ ॐ श्री गणेशाय नम॥ | ॥ श्री शिवाय नमस्तुभ्यं॥ | ॥ जय श्री सांवरीया सेठ जी॥
+            <img src="../static/images/mor_pankh.png" class="mor-pankh">
+            <div style="color: #004d00; font-weight: 800; margin: 3px 0;">॥लक्ष्मी कुबेर की कृपा॥</div>
+            <div style="font-size: 0.8rem;">॥ शुभं करोति कल्याणं आरोग्यं धनसंपदा॥ | ॥ शत्रुबुद्धि विनाशाय दीपज्योतिर्नमोऽस्तु ते॥</div>
+        </div>
+
+        <div class="kalash-yantra-row">
+            <img src="../static/images/kalash.png" class="bottom-img">
+            <img src="../static/images/yantra.png" class="bottom-img">
+        </div>
+    </header>
+
+    <div class="status-bar">
+        <div>📡 Kotak: <span style="color: green;">CONNECTED</span></div>
+        <div id="live-time">⏱️ 00:00:00</div>
+        <div>🚀 Engine: <span style="color: #b30000;">AI MASTER LIVE</span></div>
+    </div>
+
+    <div class="ticker-grid">
+        <div class="ticker-card">NIFTY 50<br><span id="rate-NIFTY">--</span></div>
+        <div class="ticker-card">BANKNIFTY<br><span id="rate-BANKNIFTY">--</span></div>
+        <div class="ticker-card">FINNIFTY<br><span id="rate-FINNIFTY">--</span></div>
+        <div class="ticker-card">MIDCAP<br><span id="rate-MIDCPNIFTY">--</span></div>
+        <div class="ticker-card">SENSEX<br><span id="rate-SENSEX">--</span></div>
+        <div class="ticker-card">BANKEX<br><span id="rate-BANKEX">--</span></div>
+        <div class="ticker-card">CRUDEOIL<br><span id="rate-CRUDEOIL">--</span></div>
+        <div class="ticker-card">NATURAL GAS<br><span id="rate-NATURALGAS">--</span></div>
+    </div>
+
+    <div class="ai-analysis-box">
+        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="female-robot-img">
+        <div class="analysis-text">
+            <div style="color: #008000; font-weight: 800;">🤖 OmAi Female Analyst: Scanning Live Charts...</div>
+            <div id="ai-status" style="font-size: 0.75rem; color: #555;">Analyzing 8 VIP Groups for Jackpot Trade...</div>
+            <div class="scanning-line"></div>
+        </div>
+        <img src="../static/images/mor_pankh.png" style="height: 40px;">
+    </div>
+
+    <div class="main-grid">
+        <div class="compact-card">
+            <div class="card-header">💰 Portfolio Summary</div>
+            <div style="font-size: 1.3rem; font-weight: 900; text-align: center; margin-top: 5px;" id="display-capital">₹ 10,000</div>
+            <div style="text-align: center; font-weight: 700; color: #b30000; font-size: 0.75rem;">P&L: <span id="display-pnl">₹ 0.00</span></div>
+            <img src="../static/images/golden_fish.png" style="width: 25px; display: block; margin: 3px auto;">
+        </div>
+
+        <div class="compact-card">
+            <div class="card-header">📉 Market Sentiment</div>
+            <div class="gauge-container">
+                <div class="gauge-color"></div>
+                <div class="needle" id="gauge-needle"></div>
+            </div>
+            <div id="sentiment-text" class="sentiment-label">NEUTRAL ⚖️</div>
+        </div>
+
+        <div class="compact-card" style="border-color: #0088cc;">
+            <div class="card-header" style="color: #0088cc;">📡 VIP Signals Listener</div>
+            <div id="tg-log" style="height: 80px; overflow-y: auto; font-size: 0.7rem;">
+                Monitoring Markets... 🟢
+            </div>
+        </div>
+    </div>
+
+    <div class="trade-section">
+        <div style="font-weight: 800; font-size: 0.85rem; border-bottom: 2px solid var(--gold); margin-bottom: 5px;">📝 Live Trade Station</div>
+        <table>
+            <thead>
+                <tr><th>Time</th><th>Symbol</th><th>Type</th><th>Price</th><th>Qty</th><th>Status</th></tr>
+            </thead>
+            <tbody id="trade-log">
+                <tr><td colspan="6" style="text-align:center;">Waiting for AI Trade...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function createRain() {
+            const rain = document.getElementById('rain');
+            const div = document.createElement('div');
+            div.classList.add('coin');
+            div.style.left = Math.random() * 100 + 'vw';
+            div.style.animationDuration = Math.random() * 3 + 2 + 's';
+            rain.appendChild(div);
+            setTimeout(() => div.remove(), 5000);
+        }
+        setInterval(createRain, 600);
+
+        // New: Sentiment Meter Rotation Logic
+        function updateSentiment() {
+            const angle = Math.floor(Math.random() * 181) - 90; // -90 to +90
+            document.getElementById('gauge-needle').style.transform = `rotate(${angle}deg)`;
+            const text = document.getElementById('sentiment-text');
+            if(angle < -30) { text.innerText = "BEARISH 📉"; text.style.color = "red"; }
+            else if(angle > 30) { text.innerText = "BULLISH 📈"; text.style.color = "green"; }
+            else { text.innerText = "NEUTRAL ⚖️"; text.style.color = "#888"; }
+        }
+        setInterval(updateSentiment, 3000);
+
+        const statuses = ["Analyzing RSI...", "Checking VIP Groups...", "Signal Confirmation...", "AI Ready!"];
+        let i = 0;
+        setInterval(() => {
+            document.getElementById('ai-status').innerText = statuses[i];
+            i = (i + 1) % statuses.length;
+        }, 4000);
+
+        async function updateDashboard() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                document.getElementById('live-time').innerText = '⏱️ ' + new Date().toLocaleTimeString('en-IN');
+                document.getElementById('display-capital').innerText = '₹ ' + data.capital.toLocaleString('en-IN');
+                document.getElementById('display-pnl').innerText = '₹ ' + data.today_pnl.toLocaleString('en-IN');
+                for(let s in data.live_rates) {
+                    let el = document.getElementById('rate-'+s);
+                    if(el && data.live_rates[s] > 0) el.innerText = '₹ ' + data.live_rates[s].toLocaleString('en-IN');
+                }
+            } catch(e) {}
+        }
+        setInterval(updateDashboard, 1500);
+    </script>
+</body>
+</html>
