@@ -333,12 +333,12 @@ class TradingEngine:
         for group in self.config.get('telegram_groups', []):
             if not group.get('active', False):
                 continue
+            gname = group.get('name', 'Unknown')
+            read_groups.append(gname)
             try:
-                gname = group.get('name', 'Unknown')
                 messages = self.tg_reader.get_recent_messages(
                     group.get('hash_id') or group.get('chat_id'), limit=5
                 )
-                read_groups.append(gname)
                 for msg in messages:
                     parsed = self.signal_parser.parse(msg.get('text', ''))
                     if parsed:
