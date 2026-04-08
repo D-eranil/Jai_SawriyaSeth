@@ -7,6 +7,8 @@
 3. Run Start.bat
 4. Complete first Telegram OTP login (if Telegram 2FA is enabled, provide password in config or popup; session will be reused)
 
+> Install script now uses `requirements.txt` to keep dependency versions compatible.
+
 ### Kotak Credentials
 - Preferred: set values in `config/config.json` under `kotak_neo`
 - Optional: use environment variables as fallback:
