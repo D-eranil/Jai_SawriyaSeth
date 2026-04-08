@@ -7,6 +7,15 @@
 3. Run Start.bat
 4. Complete first Telegram OTP login (if Telegram 2FA is enabled, provide password in config or popup; session will be reused)
 
+### Kotak Credentials
+- Preferred: set values in `config/config.json` under `kotak_neo`
+- Optional: use environment variables as fallback:
+  - `KOTAK_ACCESS_TOKEN`
+  - `KOTAK_CLIENT_CODE`
+  - `KOTAK_MOBILE`
+  - `KOTAK_MPIN`
+  - `KOTAK_TOTP_SECRET`
+
 ### Features
 - Kotak Neo Live Connection
 - 8 Symbols Live Rates

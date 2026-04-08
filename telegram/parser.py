@@ -3,9 +3,10 @@ import re
 
 class SignalParser:
     def __init__(self):
+        symbols_group = r'(NIFTY|BANKNIFTY|FINNIFTY|MIDCPNIFTY|SENSEX|BANKEX|CRUDEOIL|NATURALGAS)'
         self.buy_patterns = [
             r'BUY\s+(CE|PE|FUT)',
-            r'BUY\s+NIFTY|BANKNIFTY|FINNIFTY|SENSEX|CRUDEOIL|NATURALGAS',
+            rf'BUY\s+{symbols_group}',
             r'LONG\s+(\w+)',
             r'🎯\s*BUY',
             r'🟢\s*BUY',
@@ -15,7 +16,7 @@ class SignalParser:
         ]
         self.sell_patterns = [
             r'SELL\s+(CE|PE|FUT)',
-            r'SELL\s+NIFTY|BANKNIFTY|FINNIFTY|SENSEX|CRUDEOIL|NATURALGAS',
+            rf'SELL\s+{symbols_group}',
             r'SHORT\s+(\w+)',
             r'🔴\s*SELL',
             r'⚡\s*SELL',
@@ -55,9 +56,9 @@ class SignalParser:
         return None
 
     def _extract_symbol(self, text):
-        symbols = ['NIFTY', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY', 'SENSEX', 'BANKEX', 'CRUDEOIL', 'NATURALGAS']
+        symbols = ['MIDCPNIFTY', 'BANKNIFTY', 'FINNIFTY', 'NATURALGAS', 'CRUDEOIL', 'SENSEX', 'BANKEX', 'NIFTY']
         for sym in symbols:
-            if sym in text:
+            if re.search(rf'\b{sym}\b', text):
                 return sym
         return None
 

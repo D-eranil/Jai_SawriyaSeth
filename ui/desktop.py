@@ -67,8 +67,8 @@ class JssDesktop:
         except Exception:
             cfg = {}
         cfg.setdefault('trading', {})
-        cfg['trading']['paper_mode'] = True
-        cfg['trading']['initial_capital'] = 1000
+        cfg['trading'].setdefault('paper_mode', True)
+        cfg['trading'].setdefault('initial_capital', 1000)
         return cfg
 
     def _build_ui(self):
