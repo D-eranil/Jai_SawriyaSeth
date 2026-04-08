@@ -3,6 +3,7 @@ import asyncio
 import os
 import time
 import threading
+import sqlite3
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
 
@@ -16,7 +17,8 @@ class TelegramReader:
         self.password = (tg.get("password") or "").strip()
         base = os.path.join(os.getcwd(), "data", "sessions")
         os.makedirs(base, exist_ok=True)
-        self.session_name = os.path.join(base, "jss_console_session")
+        session_name = (tg.get("session_name") or "jss_console_session").strip() or "jss_console_session"
+        self.session_name = os.path.join(base, session_name)
         self.client = None
         self.loop = asyncio.new_event_loop()
         self._loop_lock = threading.Lock()
@@ -90,6 +92,14 @@ class TelegramReader:
             self.status_msg = "CONNECTED"
             self._log("✅ Telegram reader connected")
             return True
+        except sqlite3.OperationalError as e:
+            if "database is locked" in str(e).lower():
+                self.status_msg = "SESSION LOCKED"
+                self._log("❌ Telegram session DB is locked. Close other running instance or use a different telegram.session_name.")
+            else:
+                self.status_msg = "FAILED"
+                self._log(f"❌ Telegram reader error: {e}")
+            return False
         except Exception as e:
             self.status_msg = "FAILED"
             self._log(f"❌ Telegram reader error: {e}")
