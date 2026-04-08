@@ -8,9 +8,14 @@ import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_DIR = os.path.join(BASE_DIR, "data", "logs")
+LOG_FILE = os.path.join(LOG_DIR, "headless.log")
+PID_FILE = os.path.join(LOG_DIR, "headless.pid")
+
 
 def load_config():
-    cfg_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config", "config.json")
+    cfg_path = os.path.join(BASE_DIR, "config", "config.json")
     with open(cfg_path, "r", encoding="utf-8") as f:
         cfg = json.load(f)
     cfg.setdefault("trading", {})
@@ -20,8 +25,15 @@ def load_config():
 
 
 def log(msg):
+    os.makedirs(LOG_DIR, exist_ok=True)
     ts = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{ts}] {msg}", flush=True)
+    line = f"[{ts}] {msg}"
+    try:
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(line + "\n")
+    except Exception:
+        pass
+    print(line, flush=True)
 
 
 def main():
@@ -37,6 +49,9 @@ def main():
     from telegram.reader import TelegramReader
 
     cfg = load_config()
+    os.makedirs(LOG_DIR, exist_ok=True)
+    with open(PID_FILE, "w", encoding="utf-8") as f:
+        f.write(str(os.getpid()))
     log("Starting headless mode...")
 
     kotak = KotakNeo(cfg.get("kotak_neo", {}))
@@ -80,6 +95,12 @@ def main():
     except KeyboardInterrupt:
         log("Stopping...")
         engine.stop()
+    finally:
+        try:
+            if os.path.exists(PID_FILE):
+                os.remove(PID_FILE)
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

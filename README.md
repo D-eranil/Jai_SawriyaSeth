@@ -35,6 +35,8 @@
 ### Background Mode (No Desktop UI)
 - Run `Start_Hidden.bat` to start engine in background via `pythonw`.
 - It should appear in Task Manager (`pythonw.exe`) without a visible CMD window.
+- To monitor backend live logs, run `View_Backend_Logs.bat`.
+- To check running status + last logs quickly, run `Backend_Status.bat`.
 
 ### Telegram Trade Alerts
 - Entry and Exit trade messages are sent through configured Telegram bot (`telegram_alerts.bot_token` + `my_chat_id/chat_id`).
