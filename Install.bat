@@ -8,7 +8,8 @@ echo   ॥ जय श्री सांवरीया सेठ ि॥
 echo  ========================================
 echo.
 echo Installing packages...
-pip install requests pandas numpy Pillow neo-api-client pyotp openpyxl flask telethon pyinstaller
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 echo.
 echo Done! Run Start.bat
 pause
