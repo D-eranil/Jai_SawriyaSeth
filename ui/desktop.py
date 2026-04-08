@@ -85,6 +85,14 @@ class JssDesktop:
         ganesh.pack()
         if not self._make_image_label(ganesh, "ganesh.png", (64, 64), BG2):
             Label(ganesh, text="🙏🙏", font=("Arial", 26), bg=BG2, fg=GOLD).pack()
+        Label(
+            ganesh,
+            text="॥ ॐ श्री गणेशाय नमः ि॥\nलक्ष्मी कुबेर की कृपा ि॥",
+            font=("Arial", 8, "bold"),
+            bg=BG2,
+            fg=GOLD,
+            justify=CENTER
+        ).pack(pady=(2, 0))
 
         title = Frame(center_head, bg=BG2)
         title.pack()
