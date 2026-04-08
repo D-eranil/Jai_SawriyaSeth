@@ -337,8 +337,9 @@ class TradingEngine:
             gname = group.get('name', 'Unknown')
             read_groups.append(gname)
             try:
+                chat_ref = (group.get('hash_id') or group.get('chat_id') or gname or '').strip()
                 messages = self.tg_reader.get_recent_messages(
-                    group.get('hash_id') or group.get('chat_id'), limit=5
+                    chat_ref, limit=5
                 )
                 if messages:
                     latest = messages[0]
@@ -355,8 +356,8 @@ class TradingEngine:
                         parsed['time'] = msg.get('date', '')
                         self.telegram_signals.append(parsed)
                         self.telegram_signals = self.telegram_signals[-50:]
-            except:
-                pass
+            except Exception as e:
+                self.telegram_last_messages[gname] = {'date': '', 'text': f'ERROR: {str(e)[:120]}'}
         self.telegram_read_groups = read_groups
         self.last_tg_poll = datetime.now(ZoneInfo('Asia/Kolkata')).strftime('%H:%M:%S')
 
