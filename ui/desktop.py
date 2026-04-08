@@ -54,6 +54,10 @@ class JssDesktop:
         self.engine = None
         self.running = False
         self._img_refs = []
+        self._last_tg_poll_seen = ""
+        self._last_tg_messages = {}
+        self.tg_monitor_win = None
+        self.tg_monitor_tree = None
 
         self._build_ui()
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -67,8 +71,8 @@ class JssDesktop:
         except Exception:
             cfg = {}
         cfg.setdefault('trading', {})
-        cfg['trading']['paper_mode'] = True
-        cfg['trading']['initial_capital'] = 1000
+        cfg['trading'].setdefault('paper_mode', True)
+        cfg['trading'].setdefault('initial_capital', 1000)
         return cfg
 
     def _build_ui(self):
@@ -85,6 +89,14 @@ class JssDesktop:
         ganesh.pack()
         if not self._make_image_label(ganesh, "ganesh.png", (64, 64), BG2):
             Label(ganesh, text="🙏🙏", font=("Arial", 26), bg=BG2, fg=GOLD).pack()
+        Label(
+            ganesh,
+            text="॥ ॐ श्री गणेशाय नमः ि॥\nलक्ष्मी कुबेर की कृपा ि॥",
+            font=("Arial", 8, "bold"),
+            bg=BG2,
+            fg=GOLD,
+            justify=CENTER
+        ).pack(pady=(2, 0))
 
         title = Frame(center_head, bg=BG2)
         title.pack()
@@ -98,6 +110,7 @@ class JssDesktop:
         self.lbl_tg.pack(side=RIGHT, padx=10)
         self.lbl_kotak = Label(top, text="❌ Kotak", font=("Arial", 10), bg=BG2, fg=RED)
         self.lbl_kotak.pack(side=RIGHT, padx=10)
+        Button(top, text="🧾 TG Monitor", font=("Arial", 9, "bold"), bg=BG3, fg=GOLD, command=self._open_tg_monitor).pack(side=RIGHT, padx=10)
 
         mid = Frame(main, bg=BG)
         mid.pack(fill=BOTH, expand=True, pady=5)
@@ -194,6 +207,13 @@ class JssDesktop:
         self._log("🙏 ॥ जय श्री सांवरीया सेठ ि॥")
         self._log("ि॥ श्री गणेशाय नमः ि॥")
         self._log("Software Loaded")
+        active_groups = [g.get("name", "Unknown") for g in self.config_data.get("telegram_groups", []) if g.get("active")]
+        if active_groups:
+            self.lbl_tg_read.config(text="TG Config: " + ", ".join(active_groups[:3]) + (" ..." if len(active_groups) > 3 else ""))
+            self._log("📚 TG Config Groups: " + ", ".join(active_groups))
+        else:
+            self.lbl_tg_read.config(text="TG Config: None Active")
+            self._log("⚠️ No active Telegram groups configured")
         self._log("⏳ Auto-Starting in 3 seconds...")
 
     def _make_image_label(self, parent, image_name, size, bg):
@@ -327,7 +347,8 @@ class JssDesktop:
             from telegram.parser import SignalParser
             from strategies import load_all_strategies
 
-            capital = CapitalManager(initial_capital=1000)
+            initial_capital = float(self.config_data.get('trading', {}).get('initial_capital', 1000) or 1000)
+            capital = CapitalManager(initial_capital=initial_capital)
             risk = RiskManager(self.config_data)
             parser = SignalParser()
             strategies = load_all_strategies()
@@ -348,7 +369,7 @@ class JssDesktop:
             self.engine.on_update = self._on_engine_update
             self.engine.on_trade = self._on_trade
             self.engine.start()
-            self._log("🤖 Engine started (Paper mode | Capital ₹1000)")
+            self._log(f"🤖 Engine started ({'Paper' if self.config_data.get('trading', {}).get('paper_mode', True) else 'Live'} mode | Capital ₹{initial_capital:,.2f})")
         except Exception as e:
             self._log("❌ Engine start failed: " + str(e))
 
@@ -362,11 +383,23 @@ class JssDesktop:
         self.lbl_time.config(text="Time: " + s.get('time_window', '-'))
         self.lbl_expiry.config(text="Expiry: " + str(s.get('expiry_symbol') or 'None'))
         tg_groups_read = s.get('tg_groups_read', [])
+        configured_groups = [g.get("name", "Unknown") for g in self.config_data.get("telegram_groups", []) if g.get("active")]
         if tg_groups_read:
-            self.lbl_tg_read.config(text="TG Read: " + ", ".join(tg_groups_read[-3:]))
+            self.lbl_tg_read.config(text=f"TG Read {len(tg_groups_read)}/{len(configured_groups)}: " + ", ".join(tg_groups_read[-3:]))
         else:
-            self.lbl_tg_read.config(text="TG Read: None")
+            self.lbl_tg_read.config(text=f"TG Read 0/{len(configured_groups)}")
         self.lbl_tg_poll.config(text="TG Poll: " + str(s.get('tg_last_poll') or '-'))
+        tg_last_messages = s.get('tg_last_messages', {}) or {}
+        self._last_tg_messages = tg_last_messages
+        poll = str(s.get('tg_last_poll') or '')
+        if poll and poll != self._last_tg_poll_seen and tg_last_messages:
+            self._last_tg_poll_seen = poll
+            for grp, row in tg_last_messages.items():
+                txt = (row.get('text', '') or '').strip().replace("\n", " ")
+                if len(txt) > 80:
+                    txt = txt[:80] + "..."
+                self._log(f"📨 TG Last [{grp}] @ {row.get('date', '-')}: {txt or 'NO_MESSAGE'}")
+        self._refresh_tg_monitor()
         cap = float(s.get('capital', 1000) or 1000)
         pnl = float(s.get('total_pnl', 0) or 0)
         self.lbl_capital.config(text=f"₹{cap:,.2f}")
@@ -400,9 +433,44 @@ class JssDesktop:
                             "{:+.2f}%".format(d['change_pct']), "{:.2f}".format(d['high']),
                             "{:.2f}".format(d['low']), "✅ LIVE"
                         ))
+                    else:
+                        self.rates_tree.item(items[i], values=(
+                            sym, "--", "--", "--", "--", "--", "❌ NO DATA"
+                        ))
         except Exception:
             pass
         self.root.after(1000, self._ltp_loop)
+
+    def _open_tg_monitor(self):
+        if self.tg_monitor_win and self.tg_monitor_win.winfo_exists():
+            self.tg_monitor_win.lift()
+            return
+        self.tg_monitor_win = Toplevel(self.root)
+        self.tg_monitor_win.title("Telegram Group Last Messages")
+        self.tg_monitor_win.geometry("920x420")
+        self.tg_monitor_win.configure(bg=BG2)
+
+        cols = ("Group", "Last Time", "Last Message")
+        self.tg_monitor_tree = ttk.Treeview(self.tg_monitor_win, columns=cols, show="headings", height=16)
+        self.tg_monitor_tree.heading("Group", text="Group")
+        self.tg_monitor_tree.heading("Last Time", text="Last Time")
+        self.tg_monitor_tree.heading("Last Message", text="Last Message")
+        self.tg_monitor_tree.column("Group", width=240, anchor="w")
+        self.tg_monitor_tree.column("Last Time", width=170, anchor="center")
+        self.tg_monitor_tree.column("Last Message", width=490, anchor="w")
+        self.tg_monitor_tree.pack(fill=BOTH, expand=True, padx=8, pady=8)
+        self._refresh_tg_monitor()
+
+    def _refresh_tg_monitor(self):
+        if not self.tg_monitor_tree or not (self.tg_monitor_win and self.tg_monitor_win.winfo_exists()):
+            return
+        for row in self.tg_monitor_tree.get_children():
+            self.tg_monitor_tree.delete(row)
+        for group in [g.get("name", "Unknown") for g in self.config_data.get("telegram_groups", []) if g.get("active")]:
+            info = self._last_tg_messages.get(group, {})
+            last_time = info.get("date", "-") or "-"
+            text = (info.get("text", "NO_MESSAGE") or "NO_MESSAGE").replace("\n", " ")
+            self.tg_monitor_tree.insert("", END, values=(group, last_time, text[:220]))
 
     def _on_close(self):
         try:

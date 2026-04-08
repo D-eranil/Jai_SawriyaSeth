@@ -1,5 +1,5 @@
-"""Kotak Neo Broker - Hardcoded Values - No Config Needed"""
-import json
+"""Kotak Neo Broker"""
+import os
 import pyotp
 import requests
 
@@ -16,37 +16,23 @@ INSTRUMENTS = {
 
 SYMBOLS = INSTRUMENTS
 
-# === HARDCODED VALUES - DIRECT CONNECT ===
-HARDCODED = {
-    "access_token": "4330d772-bb66-498d-a4cb-3ae8e8c324a8",
-    "client_code": "XV3ZT",
-    "mobile": "+919509675779",
-    "mpin": "112151",
-    "totp_secret": "YYDEDABS3PAAOWLECS3C33GUOM"
+ENV_KEYS = {
+    "access_token": "KOTAK_ACCESS_TOKEN",
+    "client_code": "KOTAK_CLIENT_CODE",
+    "mobile": "KOTAK_MOBILE",
+    "mpin": "KOTAK_MPIN",
+    "totp_secret": "KOTAK_TOTP_SECRET",
 }
 
 
 class KotakNeo:
     def __init__(self, cfg=None, session_mgr=None):
-        # USE HARDCODED VALUES - CONFIG OPTIONAL
-        self.access_token = HARDCODED["access_token"]
-        self.client_code = HARDCODED["client_code"]
-        self.mobile = HARDCODED["mobile"]
-        self.mpin = HARDCODED["mpin"]
-        self.totp_secret = HARDCODED["totp_secret"]
-
-        # Override from config if available
-        if cfg:
-            if cfg.get('access_token', '').strip():
-                self.access_token = cfg['access_token'].strip()
-            if cfg.get('client_code', '').strip():
-                self.client_code = cfg['client_code'].strip()
-            if cfg.get('mobile', '').strip():
-                self.mobile = cfg['mobile'].strip()
-            if cfg.get('mpin', '').strip():
-                self.mpin = cfg['mpin'].strip()
-            if cfg.get('totp_secret', '').strip():
-                self.totp_secret = cfg['totp_secret'].strip()
+        cfg = cfg or {}
+        self.access_token = (cfg.get('access_token', '') or os.getenv(ENV_KEYS['access_token'], '')).strip()
+        self.client_code = (cfg.get('client_code', '') or os.getenv(ENV_KEYS['client_code'], '')).strip()
+        self.mobile = (cfg.get('mobile', '') or os.getenv(ENV_KEYS['mobile'], '')).strip()
+        self.mpin = (cfg.get('mpin', '') or os.getenv(ENV_KEYS['mpin'], '')).strip()
+        self.totp_secret = (cfg.get('totp_secret', '') or os.getenv(ENV_KEYS['totp_secret'], '')).strip()
 
         self.session_mgr = session_mgr
         self.logged_in = False
@@ -75,6 +61,19 @@ class KotakNeo:
 
     def connect(self):
         self._log("━━━ KOTAK DIRECT LOGIN ━━━")
+        required = [
+            ("access_token", self.access_token, ENV_KEYS["access_token"]),
+            ("client_code", self.client_code, ENV_KEYS["client_code"]),
+            ("mobile", self.mobile, ENV_KEYS["mobile"]),
+            ("mpin", self.mpin, ENV_KEYS["mpin"]),
+            ("totp_secret", self.totp_secret, ENV_KEYS["totp_secret"]),
+        ]
+        missing = [f"{name} (or env {env_key})" for name, value, env_key in required if not value]
+        if missing:
+            self.status_msg = "Missing credentials"
+            self._log("❌ Missing Kotak credentials: " + ", ".join(missing))
+            return False
+
         self._log("✅ Token: " + self.access_token[:10] + "****")
         self._log("✅ Client Code: " + self.client_code)
         self._log("✅ Mobile: " + self.mobile[:7] + "****")

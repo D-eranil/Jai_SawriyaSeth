@@ -128,6 +128,7 @@ class TradingEngine:
         self.trades_history = []
         self.telegram_signals = []
         self.telegram_read_groups = []
+        self.telegram_last_messages = {}
         self.last_tg_poll = ""
         self.last_decision = {}
         
@@ -333,12 +334,20 @@ class TradingEngine:
         for group in self.config.get('telegram_groups', []):
             if not group.get('active', False):
                 continue
+            gname = group.get('name', 'Unknown')
+            read_groups.append(gname)
             try:
-                gname = group.get('name', 'Unknown')
                 messages = self.tg_reader.get_recent_messages(
                     group.get('hash_id') or group.get('chat_id'), limit=5
                 )
-                read_groups.append(gname)
+                if messages:
+                    latest = messages[0]
+                    self.telegram_last_messages[gname] = {
+                        'date': str(latest.get('date', '')),
+                        'text': str(latest.get('text', '') or '')[:160]
+                    }
+                else:
+                    self.telegram_last_messages[gname] = {'date': '', 'text': 'NO_MESSAGE'}
                 for msg in messages:
                     parsed = self.signal_parser.parse(msg.get('text', ''))
                     if parsed:
@@ -691,5 +700,6 @@ class TradingEngine:
             ],
             'tg_groups_read': self.telegram_read_groups[-8:],
             'tg_last_poll': self.last_tg_poll,
+            'tg_last_messages': self.telegram_last_messages,
             'last_decision': self.last_decision
         }
