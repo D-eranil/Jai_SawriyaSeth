@@ -10,6 +10,7 @@
 
 > Install script now uses `requirements.txt` to keep dependency versions compatible.
 > Dashboard now shows Telegram group read status as `TG Read X/Y`.
+> Use `🧾 TG Monitor` button in desktop UI to open group-wise last-message table.
 
 ### Kotak Credentials
 - Preferred: set values in `config/config.json` under `kotak_neo`

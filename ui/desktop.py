@@ -55,6 +55,9 @@ class JssDesktop:
         self.running = False
         self._img_refs = []
         self._last_tg_poll_seen = ""
+        self._last_tg_messages = {}
+        self.tg_monitor_win = None
+        self.tg_monitor_tree = None
 
         self._build_ui()
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -107,6 +110,7 @@ class JssDesktop:
         self.lbl_tg.pack(side=RIGHT, padx=10)
         self.lbl_kotak = Label(top, text="❌ Kotak", font=("Arial", 10), bg=BG2, fg=RED)
         self.lbl_kotak.pack(side=RIGHT, padx=10)
+        Button(top, text="🧾 TG Monitor", font=("Arial", 9, "bold"), bg=BG3, fg=GOLD, command=self._open_tg_monitor).pack(side=RIGHT, padx=10)
 
         mid = Frame(main, bg=BG)
         mid.pack(fill=BOTH, expand=True, pady=5)
@@ -386,6 +390,7 @@ class JssDesktop:
             self.lbl_tg_read.config(text=f"TG Read 0/{len(configured_groups)}")
         self.lbl_tg_poll.config(text="TG Poll: " + str(s.get('tg_last_poll') or '-'))
         tg_last_messages = s.get('tg_last_messages', {}) or {}
+        self._last_tg_messages = tg_last_messages
         poll = str(s.get('tg_last_poll') or '')
         if poll and poll != self._last_tg_poll_seen and tg_last_messages:
             self._last_tg_poll_seen = poll
@@ -394,6 +399,7 @@ class JssDesktop:
                 if len(txt) > 80:
                     txt = txt[:80] + "..."
                 self._log(f"📨 TG Last [{grp}] @ {row.get('date', '-')}: {txt or 'NO_MESSAGE'}")
+        self._refresh_tg_monitor()
         cap = float(s.get('capital', 1000) or 1000)
         pnl = float(s.get('total_pnl', 0) or 0)
         self.lbl_capital.config(text=f"₹{cap:,.2f}")
@@ -427,9 +433,44 @@ class JssDesktop:
                             "{:+.2f}%".format(d['change_pct']), "{:.2f}".format(d['high']),
                             "{:.2f}".format(d['low']), "✅ LIVE"
                         ))
+                    else:
+                        self.rates_tree.item(items[i], values=(
+                            sym, "--", "--", "--", "--", "--", "❌ NO DATA"
+                        ))
         except Exception:
             pass
         self.root.after(1000, self._ltp_loop)
+
+    def _open_tg_monitor(self):
+        if self.tg_monitor_win and self.tg_monitor_win.winfo_exists():
+            self.tg_monitor_win.lift()
+            return
+        self.tg_monitor_win = Toplevel(self.root)
+        self.tg_monitor_win.title("Telegram Group Last Messages")
+        self.tg_monitor_win.geometry("920x420")
+        self.tg_monitor_win.configure(bg=BG2)
+
+        cols = ("Group", "Last Time", "Last Message")
+        self.tg_monitor_tree = ttk.Treeview(self.tg_monitor_win, columns=cols, show="headings", height=16)
+        self.tg_monitor_tree.heading("Group", text="Group")
+        self.tg_monitor_tree.heading("Last Time", text="Last Time")
+        self.tg_monitor_tree.heading("Last Message", text="Last Message")
+        self.tg_monitor_tree.column("Group", width=240, anchor="w")
+        self.tg_monitor_tree.column("Last Time", width=170, anchor="center")
+        self.tg_monitor_tree.column("Last Message", width=490, anchor="w")
+        self.tg_monitor_tree.pack(fill=BOTH, expand=True, padx=8, pady=8)
+        self._refresh_tg_monitor()
+
+    def _refresh_tg_monitor(self):
+        if not self.tg_monitor_tree or not (self.tg_monitor_win and self.tg_monitor_win.winfo_exists()):
+            return
+        for row in self.tg_monitor_tree.get_children():
+            self.tg_monitor_tree.delete(row)
+        for group in [g.get("name", "Unknown") for g in self.config_data.get("telegram_groups", []) if g.get("active")]:
+            info = self._last_tg_messages.get(group, {})
+            last_time = info.get("date", "-") or "-"
+            text = (info.get("text", "NO_MESSAGE") or "NO_MESSAGE").replace("\n", " ")
+            self.tg_monitor_tree.insert("", END, values=(group, last_time, text[:220]))
 
     def _on_close(self):
         try:
