@@ -41,6 +41,7 @@
 ### Telegram Trade Alerts
 - Entry and Exit trade messages are sent through configured Telegram bot (`telegram_alerts.bot_token` + `my_chat_id/chat_id`).
 - On successful bot connection, a startup confirmation message is also sent.
+- Background/Desktop logs also print the latest fetched message snippet per active Telegram group after each poll.
 
 ### Images Required
 Put these images in images/ folder:

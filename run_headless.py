@@ -86,6 +86,24 @@ def main():
         strategies=load_all_strategies(),
     )
     engine.on_log = log
+    last_poll_seen = {"val": ""}
+
+    def on_update(status):
+        poll = str(status.get("tg_last_poll") or "")
+        if not poll or poll == last_poll_seen["val"]:
+            return
+        last_poll_seen["val"] = poll
+        last_rows = status.get("tg_last_messages", {}) or {}
+        if not last_rows:
+            log(f"TG poll {poll}: no group messages")
+            return
+        for grp, row in last_rows.items():
+            txt = (row.get("text", "") or "").strip().replace("\n", " ")
+            if len(txt) > 100:
+                txt = txt[:100] + "..."
+            log(f"TG poll {poll} | {grp} | {row.get('date', '-')}: {txt or 'NO_MESSAGE'}")
+
+    engine.on_update = on_update
     engine.start()
     log(f"Engine running in {'PAPER' if cfg.get('trading', {}).get('paper_mode', True) else 'LIVE'} mode")
 

@@ -54,6 +54,7 @@ class JssDesktop:
         self.engine = None
         self.running = False
         self._img_refs = []
+        self._last_tg_poll_seen = ""
 
         self._build_ui()
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -384,6 +385,15 @@ class JssDesktop:
         else:
             self.lbl_tg_read.config(text=f"TG Read 0/{len(configured_groups)}")
         self.lbl_tg_poll.config(text="TG Poll: " + str(s.get('tg_last_poll') or '-'))
+        tg_last_messages = s.get('tg_last_messages', {}) or {}
+        poll = str(s.get('tg_last_poll') or '')
+        if poll and poll != self._last_tg_poll_seen and tg_last_messages:
+            self._last_tg_poll_seen = poll
+            for grp, row in tg_last_messages.items():
+                txt = (row.get('text', '') or '').strip().replace("\n", " ")
+                if len(txt) > 80:
+                    txt = txt[:80] + "..."
+                self._log(f"📨 TG Last [{grp}] @ {row.get('date', '-')}: {txt or 'NO_MESSAGE'}")
         cap = float(s.get('capital', 1000) or 1000)
         pnl = float(s.get('total_pnl', 0) or 0)
         self.lbl_capital.config(text=f"₹{cap:,.2f}")
