@@ -194,6 +194,13 @@ class JssDesktop:
         self._log("🙏 ॥ जय श्री सांवरीया सेठ ि॥")
         self._log("ि॥ श्री गणेशाय नमः ि॥")
         self._log("Software Loaded")
+        active_groups = [g.get("name", "Unknown") for g in self.config_data.get("telegram_groups", []) if g.get("active")]
+        if active_groups:
+            self.lbl_tg_read.config(text="TG Config: " + ", ".join(active_groups[:3]) + (" ..." if len(active_groups) > 3 else ""))
+            self._log("📚 TG Config Groups: " + ", ".join(active_groups))
+        else:
+            self.lbl_tg_read.config(text="TG Config: None Active")
+            self._log("⚠️ No active Telegram groups configured")
         self._log("⏳ Auto-Starting in 3 seconds...")
 
     def _make_image_label(self, parent, image_name, size, bg):
@@ -327,7 +334,8 @@ class JssDesktop:
             from telegram.parser import SignalParser
             from strategies import load_all_strategies
 
-            capital = CapitalManager(initial_capital=1000)
+            initial_capital = float(self.config_data.get('trading', {}).get('initial_capital', 1000) or 1000)
+            capital = CapitalManager(initial_capital=initial_capital)
             risk = RiskManager(self.config_data)
             parser = SignalParser()
             strategies = load_all_strategies()
@@ -348,7 +356,7 @@ class JssDesktop:
             self.engine.on_update = self._on_engine_update
             self.engine.on_trade = self._on_trade
             self.engine.start()
-            self._log("🤖 Engine started (Paper mode | Capital ₹1000)")
+            self._log(f"🤖 Engine started ({'Paper' if self.config_data.get('trading', {}).get('paper_mode', True) else 'Live'} mode | Capital ₹{initial_capital:,.2f})")
         except Exception as e:
             self._log("❌ Engine start failed: " + str(e))
 
@@ -362,10 +370,11 @@ class JssDesktop:
         self.lbl_time.config(text="Time: " + s.get('time_window', '-'))
         self.lbl_expiry.config(text="Expiry: " + str(s.get('expiry_symbol') or 'None'))
         tg_groups_read = s.get('tg_groups_read', [])
+        configured_groups = [g.get("name", "Unknown") for g in self.config_data.get("telegram_groups", []) if g.get("active")]
         if tg_groups_read:
-            self.lbl_tg_read.config(text="TG Read: " + ", ".join(tg_groups_read[-3:]))
+            self.lbl_tg_read.config(text=f"TG Read {len(tg_groups_read)}/{len(configured_groups)}: " + ", ".join(tg_groups_read[-3:]))
         else:
-            self.lbl_tg_read.config(text="TG Read: None")
+            self.lbl_tg_read.config(text=f"TG Read 0/{len(configured_groups)}")
         self.lbl_tg_poll.config(text="TG Poll: " + str(s.get('tg_last_poll') or '-'))
         cap = float(s.get('capital', 1000) or 1000)
         pnl = float(s.get('total_pnl', 0) or 0)
