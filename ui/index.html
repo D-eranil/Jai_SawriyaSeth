@@ -87,6 +87,9 @@
         .trade-section { background: white; border: 2px solid var(--gold); border-radius: 15px; max-width: 95%; margin: 15px auto; padding: 10px; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 6px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.75rem; font-weight: 700; }
+        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 95%; margin: 12px auto; }
+        .chart-card { background: #fff; border: 2px solid var(--gold); border-radius: 12px; padding: 10px; }
+        canvas { width: 100%; height: 160px; background: #f8fff8; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -100,34 +103,34 @@
     <div class="money-rain" id="rain"></div>
 
     <header class="divine-header">
-        <img src="../static/images/bell.png" class="corner-img" style="left:10px;">
-        <img src="../static/images/hanging_deepak.png" class="corner-img" style="right:10px;">
-        <img src="../static/images/market_bull.png" class="market-bull">
-        <img src="../static/images/market_bear.png" class="market-bear">
+        <img src="/images/bell.png" class="corner-img" style="left:10px;">
+        <img src="/images/hanging_deepak.png" class="corner-img" style="right:10px;">
+        <img src="/images/market_bull.png" class="market-bull">
+        <img src="/images/market_bear.png" class="market-bear">
 
         <div class="ganesh-row">
-            <span class="shubh-labh">शुभ <img src="../static/images/swastik.png" style="width:25px;"></span>
-            <img src="../static/images/ganesh.png" class="ganesh-main">
-            <span class="shubh-labh"><img src="../static/images/swastik.png" style="width:25px;"> लाभ</span>
+            <span class="shubh-labh">शुभ <img src="/images/swastik.png" style="width:25px;"></span>
+            <img src="/images/ganesh.png" class="ganesh-main">
+            <span class="shubh-labh"><img src="/images/swastik.png" style="width:25px;"> लाभ</span>
         </div>
 
         <div class="divine-grid">
-            <img src="../static/images/shyam_baba.png" class="grid-img">
-            <img src="../static/images/om.png" class="om-small">
-            <img src="../static/images/laxmi_kuber.png" class="grid-img">
+            <img src="/images/shyam_baba.png" class="grid-img">
+            <img src="/images/om.png" class="om-small">
+            <img src="/images/laxmi_kuber.png" class="grid-img">
         </div>
 
         <div class="mantra-box">
-            <img src="../static/images/mor_pankh.png" class="mor-pankh">
+            <img src="/images/mor_pankh.png" class="mor-pankh">
             ॥ ॐ श्री गणेशाय नम॥ | ॥ श्री शिवाय नमस्तुभ्यं॥ | ॥ जय श्री सांवरीया सेठ जी॥
-            <img src="../static/images/mor_pankh.png" class="mor-pankh">
+            <img src="/images/mor_pankh.png" class="mor-pankh">
             <div style="color: #004d00; font-weight: 800; margin: 3px 0;">॥लक्ष्मी कुबेर की कृपा॥</div>
             <div style="font-size: 0.8rem;">॥ शुभं करोति कल्याणं आरोग्यं धनसंपदा॥ | ॥ शत्रुबुद्धि विनाशाय दीपज्योतिर्नमोऽस्तु ते॥</div>
         </div>
 
         <div class="kalash-yantra-row">
-            <img src="../static/images/kalash.png" class="bottom-img">
-            <img src="../static/images/yantra.png" class="bottom-img">
+            <img src="/images/kalash.png" class="bottom-img">
+            <img src="/images/yantra.png" class="bottom-img">
         </div>
     </header>
 
@@ -155,7 +158,7 @@
             <div id="ai-status" style="font-size: 0.75rem; color: #555;">Analyzing 8 VIP Groups for Jackpot Trade...</div>
             <div class="scanning-line"></div>
         </div>
-        <img src="../static/images/mor_pankh.png" style="height: 40px;">
+        <img src="/images/mor_pankh.png" style="height: 40px;">
     </div>
 
     <div class="main-grid">
@@ -163,7 +166,7 @@
             <div class="card-header">💰 Portfolio Summary</div>
             <div style="font-size: 1.3rem; font-weight: 900; text-align: center; margin-top: 5px;" id="display-capital">₹ 10,000</div>
             <div style="text-align: center; font-weight: 700; color: #b30000; font-size: 0.75rem;">P&L: <span id="display-pnl">₹ 0.00</span></div>
-            <img src="../static/images/golden_fish.png" style="width: 25px; display: block; margin: 3px auto;">
+            <img src="/images/golden_fish.png" style="width: 25px; display: block; margin: 3px auto;">
         </div>
 
         <div class="compact-card">
@@ -191,6 +194,29 @@
             </thead>
             <tbody id="trade-log">
                 <tr><td colspan="6" style="text-align:center;">Waiting for AI Trade...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="chart-grid">
+        <div class="chart-card">
+            <div style="font-weight:800; margin-bottom:6px;">⚡ Scalping Momentum (NIFTY)</div>
+            <canvas id="chart-scalping"></canvas>
+        </div>
+        <div class="chart-card">
+            <div style="font-weight:800; margin-bottom:6px;">🛢️ Commodities Trend (CRUDEOIL / NATURALGAS)</div>
+            <canvas id="chart-commodities"></canvas>
+        </div>
+    </div>
+
+    <div class="trade-section">
+        <div style="font-weight: 800; font-size: 0.85rem; border-bottom: 2px solid var(--gold); margin-bottom: 5px;">📨 Telegram Last Messages (Group-wise)</div>
+        <table>
+            <thead>
+                <tr><th>Group</th><th>Last Time</th><th>Last Message</th></tr>
+            </thead>
+            <tbody id="tg-last-table">
+                <tr><td colspan="3" style="text-align:center;">Waiting for Telegram poll...</td></tr>
             </tbody>
         </table>
     </div>
@@ -225,6 +251,32 @@
             i = (i + 1) % statuses.length;
         }, 4000);
 
+        function drawLineChart(canvasId, values, color="#1e7f3f") {
+            const canvas = document.getElementById(canvasId);
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width = canvas.clientWidth;
+            const h = canvas.height = canvas.clientHeight;
+            ctx.clearRect(0,0,w,h);
+            if(!values || values.length < 2) {
+                ctx.fillStyle = "#666";
+                ctx.font = "14px Poppins";
+                ctx.fillText("No chart data", 15, 24);
+                return;
+            }
+            const min = Math.min(...values), max = Math.max(...values);
+            const range = (max-min) || 1;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            values.forEach((v,i)=>{
+                const x = (i/(values.length-1))*(w-20)+10;
+                const y = h-10-((v-min)/range)*(h-25);
+                if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+            });
+            ctx.stroke();
+        }
+
         async function updateDashboard() {
             try {
                 const res = await fetch('/api/status');
@@ -234,8 +286,29 @@
                 document.getElementById('display-pnl').innerText = '₹ ' + data.today_pnl.toLocaleString('en-IN');
                 for(let s in data.live_rates) {
                     let el = document.getElementById('rate-'+s);
-                    if(el && data.live_rates[s] > 0) el.innerText = '₹ ' + data.live_rates[s].toLocaleString('en-IN');
+                    if(el) el.innerText = data.live_rates[s] > 0 ? ('₹ ' + data.live_rates[s].toLocaleString('en-IN')) : 'NO DATA';
                 }
+
+                const tgBody = document.getElementById('tg-last-table');
+                const tg = data.tg_last_messages || {};
+                const groups = Object.keys(tg);
+                tgBody.innerHTML = '';
+                if(!groups.length){
+                    tgBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No Telegram message fetched yet.</td></tr>';
+                } else {
+                    groups.forEach(g=>{
+                        const row = tg[g] || {};
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td>${g}</td><td>${row.date || '-'}</td><td>${(row.text || 'NO_MESSAGE').replace(/</g,'&lt;')}</td>`;
+                        tgBody.appendChild(tr);
+                    });
+                }
+
+                const h = data.rates_history || {};
+                drawLineChart('chart-scalping', h.NIFTY || [], '#008000');
+                const c1 = h.CRUDEOIL || [];
+                const c2 = h.NATURALGAS || [];
+                drawLineChart('chart-commodities', c1.length ? c1 : c2, '#b8860b');
             } catch(e) {}
         }
         setInterval(updateDashboard, 1500);

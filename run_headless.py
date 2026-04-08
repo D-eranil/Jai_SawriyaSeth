@@ -12,6 +12,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_DIR = os.path.join(BASE_DIR, "data", "logs")
 LOG_FILE = os.path.join(LOG_DIR, "headless.log")
 PID_FILE = os.path.join(LOG_DIR, "headless.pid")
+STATUS_FILE = os.path.join(LOG_DIR, "status.json")
 
 
 def load_config():
@@ -89,8 +90,38 @@ def main():
     )
     engine.on_log = log
     last_poll_seen = {"val": ""}
+    price_history = {}
 
     def on_update(status):
+        # Persist status for web dashboard
+        ltp = status.get("ltp", {}) or {}
+        live_rates = {}
+        for sym, row in ltp.items():
+            price = float((row or {}).get("ltp", 0) or 0)
+            live_rates[sym] = price
+            hist = price_history.setdefault(sym, [])
+            if price > 0:
+                hist.append(price)
+                if len(hist) > 60:
+                    del hist[:-60]
+
+        snapshot = {
+            "time": datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%Y-%m-%d %H:%M:%S"),
+            "capital": float(status.get("capital", 0) or 0),
+            "today_pnl": float(status.get("daily_pnl", 0) or 0),
+            "total_pnl": float(status.get("total_pnl", 0) or 0),
+            "live_rates": live_rates,
+            "rates_history": price_history,
+            "tg_last_poll": status.get("tg_last_poll", ""),
+            "tg_last_messages": status.get("tg_last_messages", {}) or {},
+            "mode": status.get("mode", ""),
+        }
+        try:
+            with open(STATUS_FILE, "w", encoding="utf-8") as f:
+                json.dump(snapshot, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            log(f"Status write failed: {e}")
+
         poll = str(status.get("tg_last_poll") or "")
         if not poll or poll == last_poll_seen["val"]:
             return
